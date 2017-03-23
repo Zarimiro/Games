@@ -1,0 +1,147 @@
+#include "stdafx.h"
+#include<iostream>
+#include<ctime>
+#include<Windows.h>
+#include<conio.h>
+using namespace std;
+bool isGameActive = true;
+
+const unsigned rows = 11, columns = 15;
+const unsigned char symbolHero = 2;
+const unsigned char symbolWall = 177;
+const unsigned char symbolBox = 254;
+const unsigned char symbolExit = 176;
+
+const unsigned char levelMap0[rows][columns + 1] = {
+	"#####2#########",
+	"#  X    #  X ##",
+	"# X ### X   # #",
+	"#             #",
+	"#             #",
+	"#             #",
+	"#             #",
+	"#             #",
+	"#             #",
+	"#      1      #",
+	"###############"
+};
+unsigned CurrentRow = 0, CurrentColumn = 0;
+unsigned char levelMap[rows][columns + 1];
+
+
+
+
+
+void SetupSystem() { //задание начальных настроек генерирования и тыды
+	srand(time(0));
+}
+
+
+
+void Initialise() { //начальные настройки игры
+	for (unsigned i = 0; i < rows; ++i) {
+		for (unsigned j = 0; j < columns; ++j) {
+			unsigned char symbol = levelMap0[i][j];
+			switch (symbol) {
+			case '#': {
+				levelMap[i][j] = symbolWall;
+				break;
+			}
+			case '1': {
+				levelMap[i][j] = symbolHero;
+				CurrentRow = i;
+				CurrentColumn = j;
+				break;
+			}
+			case '2': {
+				levelMap[i][j] = symbolExit;
+				break;
+			}
+			case 'X': {
+				levelMap[i][j] = symbolBox;
+				break;
+			}
+			default: {
+				levelMap[i][j] = symbol;
+				break;
+			}
+			}
+		}
+}
+}
+
+
+void Render() { //графика
+	system("cls");
+
+	cout << endl << "\t";
+	for (unsigned i = 0; i < rows; ++i) {
+		for (unsigned j = 0; j < columns; ++j) {
+			unsigned char symbol = levelMap[i][j];
+			cout << symbol;
+		}
+		cout << "\n\t";
+	}
+}
+
+void move(unsigned row,unsigned column) {
+	unsigned char newCell = levelMap[row][column];
+	bool canMoveToCell = false;
+
+	switch (newCell) {
+	case ' ': {
+		canMoveToCell = true;
+		break;
+	}
+	case symbolExit: {
+		isGameActive = false;
+		break;
+	}
+	case symbolBox: {
+		//where do we push box to
+		unsigned rowDirection = row - CurrentRow;
+		unsigned ColumnDirection = column - CurrentColumn;
+		//check if its free to move
+		if (levelMap[row + rowDirection][column + ColumnDirection] == ' ') {
+			canMoveToCell = true;
+			//free the space of box
+			levelMap[row][column] = ' ';
+			//move box
+			levelMap[row + rowDirection][column + ColumnDirection] = symbolBox;
+		}
+		break;
+	}
+	}
+	if (canMoveToCell) {
+		levelMap[CurrentRow][CurrentColumn] = ' ';
+		CurrentRow = row, CurrentColumn = column;
+		levelMap[CurrentRow][CurrentColumn] = symbolHero;
+	}
+
+}
+void Update() { //ввод и перемещение
+	unsigned char input = _getch();
+	input = tolower(input);//tolower возвращает строчный символ если может и ниче не делает если все итак норм
+	switch (input) {
+	case 'w':{
+			move(CurrentRow - 1, CurrentColumn);
+			break;
+		}
+	case 'a': {
+		move(CurrentRow, CurrentColumn-1);
+		break;
+	}
+	case 's': {
+		move(CurrentRow + 1, CurrentColumn);
+		break;
+	}
+	case 'd': {
+		move(CurrentRow, CurrentColumn+1);
+		break;
+	}
+	case 'r': {
+		Initialise();
+		break;
+	}
+	}
+}
