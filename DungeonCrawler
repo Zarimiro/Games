@@ -6,6 +6,8 @@
 using namespace std;
 bool isGameActive = true;
 
+HANDLE ConsoleHandle = 0;
+
 const unsigned rows = 11, columns = 15;
 const unsigned char symbolHero = 2;
 const unsigned char symbolWall = 177;
@@ -34,6 +36,7 @@ unsigned char levelMap[rows][columns + 1];
 
 void SetupSystem() { //задание начальных настроек генерирования и тыды
 	srand(time(0));
+	ConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
 
@@ -72,16 +75,47 @@ void Initialise() { //начальные настройки игры
 
 
 void Render() { //графика
-	system("cls");
+	//cлед хрень сдвигает курсор консоли в точку (0,0)
+
+	COORD CursorCoord;
+	CursorCoord.X = 0;
+	CursorCoord.Y = 0;
+	SetConsoleCursorPosition(ConsoleHandle, CursorCoord);
 
 	cout << endl << "\t";
 	for (unsigned i = 0; i < rows; ++i) {
 		for (unsigned j = 0; j < columns; ++j) {
 			unsigned char symbol = levelMap[i][j];
+			switch (symbol) {
+			case symbolWall:{
+				SetConsoleTextAttribute(ConsoleHandle, 15);
+				break;
+				}
+			case symbolHero: {
+				SetConsoleTextAttribute(ConsoleHandle, 10);
+				break;
+			}
+			case symbolBox: {
+				SetConsoleTextAttribute(ConsoleHandle, 14);
+				break;
+			}
+			case symbolExit: {
+				SetConsoleTextAttribute(ConsoleHandle, 12);
+				break;
+			}
+			}
 			cout << symbol;
+
 		}
 		cout << "\n\t";
 	}
+
+	SetConsoleTextAttribute(ConsoleHandle, 7);
+	cout << "\n\tUse WASD to move";
+	SetConsoleTextAttribute(ConsoleHandle, 10);
+	cout << " hero" << endl;
+	SetConsoleTextAttribute(ConsoleHandle, 7);
+	cout << "\tUse R to restart" << endl;
 }
 
 void move(unsigned row,unsigned column) {
@@ -145,3 +179,29 @@ void Update() { //ввод и перемещение
 	}
 	}
 }
+
+
+
+
+void Shutdown() {
+	system("cls");
+	cout << "You won! Enter any key to continue...." << endl;
+	_getch();
+}
+
+
+
+int main()
+{
+	SetupSystem();
+	Initialise();
+	do {
+		Render();
+		Update();
+	} while (isGameActive);
+
+
+	Shutdown();
+    return 0;
+}
+
