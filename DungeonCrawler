@@ -5,6 +5,7 @@
 #include<conio.h>
 using namespace std;
 bool isGameActive = true;
+unsigned levelCounter = 1;
 
 HANDLE ConsoleHandle = 0;
 
@@ -13,20 +14,60 @@ const unsigned char symbolHero = 2;
 const unsigned char symbolWall = 177;
 const unsigned char symbolBox = 254;
 const unsigned char symbolExit = 176;
+const unsigned char symbolMine = 248;
 
-const unsigned char levelMap0[rows][columns + 1] = {
+ unsigned char levelMap0[rows][columns + 1] = {
 	"#####2#########",
 	"#  X    #  X ##",
 	"# X ### X   # #",
 	"#             #",
 	"#             #",
 	"#             #",
-	"#             #",
+	"#     A       #",
 	"#             #",
 	"#             #",
 	"#      1      #",
 	"###############"
 };
+ const unsigned char levelMap1[rows][columns + 1] = {
+	"#####2#########",
+	"#  X    #  X ##",
+	"# X ### X   # #",
+	"#             #",
+	"#    X        #",
+	"#             #",
+	"#   XXXXXX    #",
+	"#             #",
+	"#             #",
+	"#      1      #",
+	"###############"
+};
+ const unsigned char levelMap2[rows][columns + 1] = {
+	 "#####2#########",
+	 "#  X    #  X ##",
+	 "# X ### X   # #",
+	 "#             #",
+	 "#    X  #X    #",
+	 "#             #",
+	 "#   XXXXXX    #",
+	 "#    ##       #",
+	 "# ##          #",
+	 "#      1      #",
+	 "###############"
+ };
+ const unsigned char levelMap3[rows][columns + 1] = {
+	 "#####2#########",
+	 "#  X    #  X ##",
+	 "# X ### X   # #",
+	 "#             #",
+	 "####X      #  #",
+	 "#         ##  #",
+	 "# ##XXXXXX    #",
+	 "# # ###       #",
+	 "# #############",
+	 "#      1XX#####",
+	 "###############"
+ };
 unsigned CurrentRow = 0, CurrentColumn = 0;
 unsigned char levelMap[rows][columns + 1];
 
@@ -42,6 +83,7 @@ void SetupSystem() { //задание начальных настроек ген
 
 
 void Initialise() { //начальные настройки игры
+	system("cls");
 	for (unsigned i = 0; i < rows; ++i) {
 		for (unsigned j = 0; j < columns; ++j) {
 			unsigned char symbol = levelMap0[i][j];
@@ -64,6 +106,10 @@ void Initialise() { //начальные настройки игры
 				levelMap[i][j] = symbolBox;
 				break;
 			}
+			case 'A': {
+				levelMap[i][j] = symbolMine;
+				break;
+			}
 			default: {
 				levelMap[i][j] = symbol;
 				break;
@@ -75,7 +121,7 @@ void Initialise() { //начальные настройки игры
 
 
 void Render() { //графика
-	//cлед хрень сдвигает курсор консоли в точку (0,0)
+	//cлед хрень сдвигает курсор консоли в точку (0,0) вместо system(cls)
 
 	COORD CursorCoord;
 	CursorCoord.X = 0;
@@ -103,6 +149,10 @@ void Render() { //графика
 				SetConsoleTextAttribute(ConsoleHandle, 12);
 				break;
 			}
+			case symbolMine: {
+				SetConsoleTextAttribute(ConsoleHandle, 12);
+				break;
+			}
 			}
 			cout << symbol;
 
@@ -116,6 +166,8 @@ void Render() { //графика
 	cout << " hero" << endl;
 	SetConsoleTextAttribute(ConsoleHandle, 7);
 	cout << "\tUse R to restart" << endl;
+	SetConsoleTextAttribute(ConsoleHandle, 7);
+	cout << "\n\tLevel #:"<<levelCounter;
 }
 
 void move(unsigned row,unsigned column) {
@@ -129,6 +181,13 @@ void move(unsigned row,unsigned column) {
 	}
 	case symbolExit: {
 		isGameActive = false;
+		break;
+	}
+	case symbolMine: {
+		system("cls");
+		cout << "Allahu AKBAR!";
+		_getch();
+		Initialise();
 		break;
 	}
 	case symbolBox: {
@@ -189,18 +248,64 @@ void Shutdown() {
 	_getch();
 }
 
-
-
-int main()
-{
+void Game() {
 	SetupSystem();
 	Initialise();
 	do {
 		Render();
 		Update();
 	} while (isGameActive);
+}
+
+void LevelSwitch() {
+	switch (levelCounter) {
+	
+	case 2: {
+		isGameActive = true;
+		for (unsigned i = 0; i < rows; ++i) {
+			for (unsigned j = 0; j < columns; ++j) {
+				levelMap0[i][j] = levelMap1[i][j];
+			}	
+		}
+		Game();
+		levelCounter++;
+	}
+			break;
+
+	case 3: {
+		isGameActive = true;
+		for (unsigned i = 0; i < rows; ++i) {
+			for (unsigned j = 0; j < columns; ++j) {
+				levelMap0[i][j] = levelMap2[i][j];
+			}	
+		};
+		Game();
+		levelCounter++;
+	}
+			break;
+
+	case 4: {
+		isGameActive = true;
+		for (unsigned i = 0; i < rows; ++i) {
+			for (unsigned j = 0; j < columns; ++j) {
+				levelMap0[i][j] = levelMap3[i][j];
+			}
+		};
+		Game();
+		levelCounter++;
+	}
+			break;
+	}
+	}
 
 
+int main()
+{
+	Game();
+	levelCounter++;
+	while (levelCounter < 5) {
+		LevelSwitch();
+	}
 	Shutdown();
     return 0;
 }
